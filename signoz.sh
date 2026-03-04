@@ -124,10 +124,31 @@ stop_services() {
 }
 
 restart_services() {
-    log_info "Restarting SigNoz services..."
-    docker compose restart
-    log_info "Services restarted"
-    show_status
+    log_info "Restarting SigNoz services (full stop and start from scratch)..."
+    docker compose down
+
+    log_info "Starting SigNoz services..."
+    docker compose up -d
+
+    log_info "Waiting for services to be ready..."
+    sleep 5
+
+    local max_wait=60
+    local waited=0
+    while ! are_all_running && [ $waited -lt $max_wait ]; do
+        echo -n "."
+        sleep 2
+        waited=$((waited + 2))
+    done
+    echo ""
+
+    if are_all_running; then
+        log_info "All services started successfully"
+        show_status
+    else
+        log_warn "Some services may not be fully started yet"
+        show_status
+    fi
 }
 
 show_logs() {
@@ -203,7 +224,7 @@ Usage: $0 [command]
 Commands:
     start       Start all SigNoz services (default if already running, shows status)
     stop        Stop all services
-    restart     Restart all services
+    restart     Full stop and start from scratch
     status      Show status of all services
     logs        Show logs from all services
     logs <svc>  Show logs from specific service (signoz, clickhouse, otel-collector, zookeeper-1)
