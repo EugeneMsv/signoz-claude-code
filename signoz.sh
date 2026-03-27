@@ -111,6 +111,8 @@ start_services() {
     if are_all_running; then
         log_info "All services started successfully"
         show_status
+        echo ""
+        health_check
     else
         log_warn "Some services may not be fully started yet"
         show_status
@@ -145,6 +147,8 @@ restart_services() {
     if are_all_running; then
         log_info "All services started successfully"
         show_status
+        echo ""
+        health_check
     else
         log_warn "Some services may not be fully started yet"
         show_status
